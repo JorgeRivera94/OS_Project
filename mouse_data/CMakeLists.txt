@@ -6,6 +6,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -s")
 # Set the project name
 project(mouse_data)
 
+# Include the directory for header files
+include_directories(include)
+
 # Add the executable
-add_executable(${CMAKE_PROJECT_NAME} 
+add_executable(${CMAKE_PROJECT_NAME}
+	src/mouse_data.c
 	src/main.c)

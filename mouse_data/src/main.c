@@ -5,17 +5,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-FILE *fptr;
-
-void handle_signal(int sig) {
-  if (fptr != NULL) {
-    fclose(fptr);
-    printf("Closed file :)\n");
-  }
-  exit(EXIT_SUCCESS);
-}
+#include "mouse_data.h"
 
 int main() {
+  // Structure to recieve and handle SIGINT signal when user enters ctrl + C in
+  // terminal
+  struct sigaction sa;
+  sa.sa_handler = handler;
+  sigaction(SIGINT, &sa, NULL);
+
   const char *device = "/dev/input/mice"; // Generic mouse device file
   int fd = open(device, O_RDONLY);
   if (fd == -1) {
@@ -27,8 +25,12 @@ int main() {
 
   printf("Listening for mouse events. Move the mouse or press buttons.\n");
 
+  // Variables to store the sumation of x and y deltas (absolute mouse
+  // coordinates)
   int sx = 0;
   int sy = 0;
+
+  // Variables to store the virtual coordinates of the mouse
   float vx;
   float vy;
 
@@ -54,8 +56,6 @@ int main() {
 
       // Transform the absolute y coordinates to a [0,25] range
       vy = (25.0 / 767.0) * (sy + 383.0);
-
-      printf("sx: %d, sy: %d, vx: %f, vy: %f\n", sx, sy, vx, vy);
 
       // Write into the binary file
       int x = (int)vx;
