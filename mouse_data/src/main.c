@@ -1,7 +1,19 @@
 #include <fcntl.h>
 #include <linux/input.h>
+#include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
+
+FILE *fptr;
+
+void handle_signal(int sig) {
+  if (fptr != NULL) {
+    fclose(fptr);
+    printf("Closed file :)\n");
+  }
+  exit(EXIT_SUCCESS);
+}
 
 int main() {
   const char *device = "/dev/input/mice"; // Generic mouse device file
@@ -17,8 +29,11 @@ int main() {
 
   int sx = 0;
   int sy = 0;
-  double vx;
-  double vy;
+  float vx;
+  float vy;
+
+  // Open the binary file
+  fptr = fopen("mouse_data.dat", "wb");
 
   while (1) {
     if (read(fd, data, sizeof(data)) > 0) {
@@ -41,6 +56,12 @@ int main() {
       vy = (25.0 / 767.0) * (sy + 383.0);
 
       printf("sx: %d, sy: %d, vx: %f, vy: %f\n", sx, sy, vx, vy);
+
+      // Write into the binary file
+      int x = (int)vx;
+      int y = (int)vy;
+      fwrite(&x, sizeof(int), 1, fptr);
+      fwrite(&y, sizeof(int), 1, fptr);
     }
   }
 
